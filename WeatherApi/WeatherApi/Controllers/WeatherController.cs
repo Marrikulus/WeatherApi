@@ -43,7 +43,7 @@ public class WeatherController : Controller
     /// <summary>
     /// Return the current weather for a city
     /// </summary>
-    /// <param name="city"></param>
+    /// <param name="city" example="Reykjavík"></param>
     /// <response code="200">Returns the current weather for a city</response>
     /// <response code="400">Not a valid city name, or city does not exist</response>
     /// <response code="404">Valid city but weather not found for city</response>
@@ -58,8 +58,8 @@ public class WeatherController : Controller
         {
             return ValidationProblem("City not found or valid");
         }
-        
-        var weatherResponse = await _client.GetAsync($"/data/2.5/weather?lat={location.lat}&lon={location.lon}&appid={_apiKey}");
+
+        var weatherResponse = await _client.GetAsync($"/data/2.5/weather?units=metric&lat={location.lat}&lon={location.lon}&appid={_apiKey}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<CurrentWeatherData>();
         if (weatherData is null)
         {
@@ -72,7 +72,7 @@ public class WeatherController : Controller
     /// <summary>
     /// Return the 5 day forecast for a city
     /// </summary>
-    /// <param name="city"></param>
+    /// <param name="city" example="Reykjavík"></param>
     /// <response code="200">Returns the forecasted weather for a city</response>
     /// <response code="400">Not a valid city name, or city does not exist</response>
     /// <response code="404">Valid city but weather not found for city</response>
@@ -87,7 +87,7 @@ public class WeatherController : Controller
         {
             return ValidationProblem("City not found or valid");
         }
-        var weatherResponse = await _client.GetAsync($"/data/2.5/forecast?lat={location.lat}&lon={location.lon}&appid={_apiKey}");
+        var weatherResponse = await _client.GetAsync($"/data/2.5/forecast?units=metric&lat={location.lat}&lon={location.lon}&appid={_apiKey}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<ForecastData>();
         if (weatherData is null)
         {
@@ -100,7 +100,8 @@ public class WeatherController : Controller
     /// <summary>
     /// Return Historical weather data for a day in a city
     /// </summary>
-    /// <param name="city" >Reykjavík</param>
+    /// <param name="city" example="Reykjavík"></param>
+    /// <param name="date" example="2023-01-01"></param>
     /// <response code="200">Returns the historical weather for a city</response>
     /// <response code="400">Not a valid city name, or city does not exist or date is outside valid range</response>
     /// <response code="404">weather not found for city and date</response>
@@ -128,7 +129,7 @@ public class WeatherController : Controller
             return ValidationProblem("Date to old, History data only goes back to January 1 1979");
         }
 
-        var weatherResponse = await _client.GetAsync($"/data/3.0/onecall/timemachine?dt={timestamp}&lat={location.lat}&lon={location.lon}&appid={_apiKey}");
+        var weatherResponse = await _client.GetAsync($"/data/3.0/onecall/timemachine?units=metric&dt={timestamp}&lat={location.lat}&lon={location.lon}&appid={_apiKey}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<HistoricalWeatherData>();
         if (weatherData is null)
         {
