@@ -16,10 +16,9 @@ public class CityService
         Load();
     }
 
-    private string normalize_string(string str)
+    private static string normalize_string(string str)
     {
-        //TODO: also strip accents from string, so that reykjavik and reykjavík can match
-        return str.ToLower();
+        return str.ToLower().RemoveDiacritics();
     }
 
     public City? FindCityByName(string name)
