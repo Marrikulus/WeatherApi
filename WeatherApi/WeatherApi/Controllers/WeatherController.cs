@@ -22,12 +22,6 @@ public class WeatherController : Controller
         _apiKey = config["ApiKey"];
     }
 
-    [HttpGet]
-    public IActionResult Index()
-    {
-        return Ok("Hello World");
-    }
-
     private async Task<Coord?> GetCityLocation(string cityName)
     {
         var city = _cityService.FindCityByName(cityName);
@@ -46,7 +40,17 @@ public class WeatherController : Controller
         return new Coord() {lon = geoLocation.lon, lat = geoLocation.lat};
     }
 
+    /// <summary>
+    /// Return the current weather for a city
+    /// </summary>
+    /// <param name="city"></param>
+    /// <response code="200">Returns the current weather for a city</response>
+    /// <response code="400">Not a valid city name, or city does not exist</response>
+    /// <response code="404">Valid city but weather not found for city</response>
     [HttpGet("{city}")]
+    [ProducesResponseType(typeof(CurrentWeatherData),StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCity(string city)
     {
         var location = await GetCityLocation(city);
@@ -65,7 +69,17 @@ public class WeatherController : Controller
         return Ok(weatherData);
     }
     
+    /// <summary>
+    /// Return the 5 day forecast for a city
+    /// </summary>
+    /// <param name="city"></param>
+    /// <response code="200">Returns the forecasted weather for a city</response>
+    /// <response code="400">Not a valid city name, or city does not exist</response>
+    /// <response code="404">Valid city but weather not found for city</response>
     [HttpGet("{city}/forecast")]
+    [ProducesResponseType(typeof(ForecastData),StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCityForecast(string city)
     {
         var location = await GetCityLocation(city);
@@ -83,7 +97,17 @@ public class WeatherController : Controller
         return Ok(weatherData);
     }
     
+    /// <summary>
+    /// Return Historical weather data for a day in a city
+    /// </summary>
+    /// <param name="city" >Reykjavík</param>
+    /// <response code="200">Returns the historical weather for a city</response>
+    /// <response code="400">Not a valid city name, or city does not exist or date is outside valid range</response>
+    /// <response code="404">weather not found for city and date</response>
     [HttpGet("{city}/history/{date:datetime}")]
+    [ProducesResponseType(typeof(HistoricalWeatherData),StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCityHistory(string city, DateTime date)
     {
         var location = await GetCityLocation(city);
@@ -95,6 +119,11 @@ public class WeatherController : Controller
         var timestamp = ((DateTimeOffset)date).ToUnixTimeSeconds();
         long beginningOfData = 283996800;
         if (timestamp < beginningOfData)
+        {
+            return ValidationProblem("Date to old, History data only goes back to January 1 1979");
+        }
+
+        if (DateTime.Now < date)
         {
             return ValidationProblem("Date to old, History data only goes back to January 1 1979");
         }
