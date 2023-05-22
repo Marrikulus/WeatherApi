@@ -90,7 +90,9 @@ public class WeatherController : Controller
         {
             return NotFound("City not found or valid");
         }
-        var weatherResponse = await _client.GetAsync($"/data/2.5/forecast?lat={location.lat}&lon={location.lon}&appid={API_KEY}");
+        
+        var timestamp = ((DateTimeOffset)date).ToUnixTimeSeconds();
+        var weatherResponse = await _client.GetAsync($"/data/3.0/onecall/timemachine?dt={timestamp}&lat={location.lat}&lon={location.lon}&appid={API_KEY}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<HistoricalWeatherData>();
         if (weatherData is null)
         {
