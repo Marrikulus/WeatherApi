@@ -11,22 +11,8 @@ public class CurrentWeatherData
     public int timezone { get; set; }
     public int cod { get; set; }
     public int dt { get; set; }
-    public object sys { get; set; }
-    public object clouds { get; set; }
+    public Clouds clouds { get; set; }
     public Coord coord { get; set; }
-    public object weather { get; set; }
-
+    public List<WeatherDescription> weather { get; set; }
+    public object sys { get; set; }
 }
-
-    public class WeatherMain
-    {
-        public float temp { get; set; }
-        public float feels_like { get; set; }
-        public float temp_min { get; set; }
-        public float temp_max { get; set; }
-        public float pressure { get; set; }
-        public float humidity { get; set; }
-        public float sea_level { get; set; }
-        public float grnd_level { get; set; }
-        public float temp_kf { get; set; }
-    }
