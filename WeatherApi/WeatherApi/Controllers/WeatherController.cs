@@ -8,17 +8,18 @@ namespace WeatherApi.Controllers;
 [Route("[controller]")]
 public class WeatherController : Controller
 {
-    private const string API_KEY = "e248d704018761b2a3d657e463ce47be";
     private HttpClient _client = new HttpClient()
     {
         BaseAddress = new Uri("http://api.openweathermap.org")
     };
 
     private readonly CityService _cityService;
+    private readonly string _apiKey;
 
-    public WeatherController([FromServices] CityService cityService)
+    public WeatherController([FromServices] CityService cityService, IConfiguration config)
     {
         _cityService = cityService;
+        _apiKey = config["ApiKey"];
     }
 
     [HttpGet]
@@ -35,7 +36,7 @@ public class WeatherController : Controller
             return city.coord;
         }
 
-        var geoResponse = await _client.GetAsync($"/geo/1.0/direct?q={cityName}&limit=1&appid={API_KEY}");
+        var geoResponse = await _client.GetAsync($"/geo/1.0/direct?q={cityName}&limit=1&appid={_apiKey}");
         var list = await geoResponse.Content.ReadFromJsonAsync<List<GeoLocation>>();
         if (list is null || list.Count < 1)
         {
@@ -54,7 +55,7 @@ public class WeatherController : Controller
             return ValidationProblem("City not found or valid");
         }
         
-        var weatherResponse = await _client.GetAsync($"/data/2.5/weather?lat={location.lat}&lon={location.lon}&appid={API_KEY}");
+        var weatherResponse = await _client.GetAsync($"/data/2.5/weather?lat={location.lat}&lon={location.lon}&appid={_apiKey}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<CurrentWeatherData>();
         if (weatherData is null)
         {
@@ -72,7 +73,7 @@ public class WeatherController : Controller
         {
             return ValidationProblem("City not found or valid");
         }
-        var weatherResponse = await _client.GetAsync($"/data/2.5/forecast?lat={location.lat}&lon={location.lon}&appid={API_KEY}");
+        var weatherResponse = await _client.GetAsync($"/data/2.5/forecast?lat={location.lat}&lon={location.lon}&appid={_apiKey}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<ForecastData>();
         if (weatherData is null)
         {
@@ -98,7 +99,7 @@ public class WeatherController : Controller
             return ValidationProblem("Date to old, History data only goes back to January 1 1979");
         }
 
-        var weatherResponse = await _client.GetAsync($"/data/3.0/onecall/timemachine?dt={timestamp}&lat={location.lat}&lon={location.lon}&appid={API_KEY}");
+        var weatherResponse = await _client.GetAsync($"/data/3.0/onecall/timemachine?dt={timestamp}&lat={location.lat}&lon={location.lon}&appid={_apiKey}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<HistoricalWeatherData>();
         if (weatherData is null)
         {
