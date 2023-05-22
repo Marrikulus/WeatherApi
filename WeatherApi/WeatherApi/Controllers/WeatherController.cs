@@ -27,7 +27,7 @@ public class WeatherController : Controller
         return Ok("Hello World");
     }
 
-    async Task<Coord?> GetCityLocation(string cityName)
+    private async Task<Coord?> GetCityLocation(string cityName)
     {
         var city = _cityService.FindCityByName(cityName);
         if (city is not null)
@@ -51,7 +51,7 @@ public class WeatherController : Controller
         var location = await GetCityLocation(city);
         if (location is null)
         {
-            return NotFound("City not found or valid");
+            return ValidationProblem("City not found or valid");
         }
         
         var weatherResponse = await _client.GetAsync($"/data/2.5/weather?lat={location.lat}&lon={location.lon}&appid={API_KEY}");
@@ -70,7 +70,7 @@ public class WeatherController : Controller
         var location = await GetCityLocation(city);
         if (location is null)
         {
-            return NotFound("City not found or valid");
+            return ValidationProblem("City not found or valid");
         }
         var weatherResponse = await _client.GetAsync($"/data/2.5/forecast?lat={location.lat}&lon={location.lon}&appid={API_KEY}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<ForecastData>();
@@ -88,10 +88,16 @@ public class WeatherController : Controller
         var location = await GetCityLocation(city);
         if (location is null)
         {
-            return NotFound("City not found or valid");
+            return ValidationProblem("City not found or valid");
         }
         
         var timestamp = ((DateTimeOffset)date).ToUnixTimeSeconds();
+        long beginningOfData = 283996800;
+        if (timestamp < beginningOfData)
+        {
+            return ValidationProblem("Date to old, History data only goes back to January 1 1979");
+        }
+
         var weatherResponse = await _client.GetAsync($"/data/3.0/onecall/timemachine?dt={timestamp}&lat={location.lat}&lon={location.lon}&appid={API_KEY}");
         var weatherData = await weatherResponse.Content.ReadFromJsonAsync<HistoricalWeatherData>();
         if (weatherData is null)
