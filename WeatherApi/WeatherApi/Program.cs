@@ -1,6 +1,4 @@
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
-using WeatherApi;
 using WeatherApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +18,11 @@ builder.Services.AddSwaggerGen(options =>
         },
     });
 });
+
+var api_key = builder.Configuration["ApiKey"];
+if (String.IsNullOrEmpty(api_key))
+    throw new ArgumentException("Missing Api Key, Add ApiKey to configuration or environment variables. ");
+
 var app = builder.Build();
 app.MapControllers();
 app.UseSwagger();
